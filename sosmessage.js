@@ -5,25 +5,31 @@ sosmessage.SosMessageClient = function(serverUrl) {
     serverUrl += '/'
   }
 
-  function doGetJSON(url, data, callback) {
-    $.ajax({
-      url: url,
-      dataType: 'json',
-      data: data,
-      success: function(data) {
-        callback && callback.call(self, data)
-      }
-    });
+  function doGet(url, settings) {
+    doAjaxCall(url, "GET", settings)
   }
 
-  function doPost(url, data, callback) {
+  function doPost(url, settings) {
+    doAjaxCall(url, "POST", settings)
+  }
+
+  function doAjaxCall(url, type, settings) {
+    var data = settings.data || {}
+
     $.ajax({
-      type: "POST",
+      type: type,
       url: url,
       dataType: 'json',
-      data: data,
+      data: settings.data,
       success: function(data) {
-        callback && callback.call(self, data)
+        if(data.meta.code === 200) {
+          settings.success && settings.success.call(self, data.response)
+        } else {
+          settings.error && settings.error.call(self, data)
+        }
+      },
+      error: function(data) {
+        settings.error && settings.error.call(self, data)
       }
     });
   }
@@ -31,57 +37,57 @@ sosmessage.SosMessageClient = function(serverUrl) {
   var client = {}
 
   // categories
-  client.categories = function(callback) {
+  client.categories = function(settings) {
     var url = serverUrl + 'categories'
-    doGetJSON(url, {}, callback)
+    doGet(url, settings)
   }
 
   // messages
-  client.messages = function(categoryId, callback) {
+  client.messages = function(categoryId, settings) {
     var url = serverUrl + 'categories/' + categoryId + '/messages'
-    doGetJSON(url, {}, callback)
+    doGet(url, settings)
   }
 
-  client.randomMessage = function(categoryId, callback) {
+  client.randomMessage = function(categoryId, settings) {
     var url = serverUrl + 'categories/' + categoryId + '/message'
-    doGetJSON(url, {}, callback)
+    doGet(url, settings)
   }
 
-  client.bestMessages = function(categoryId, callback) {
+  client.bestMessages = function(categoryId, settings) {
     var url = serverUrl + 'categories/' + categoryId + '/best'
-    doGetJSON(url, {}, callback)
+    doGet(url, settings)
   }
 
-  client.worstMessages = function(categoryId, callback) {
+  client.worstMessages = function(categoryId, settings) {
     var url = serverUrl + 'categories/' + categoryId + '/worst'
-    doGetJSON(url, {}, callback)
+    doGet(url, settings)
   }
 
-  client.postMessage = function(categoryId, data, callback) {
+  client.postMessage = function(categoryId, settings) {
     var url = serverUrl + 'categories/' + categoryId + '/message'
-    doPost(url, data, callback)
+    doPost(url, settings)
   }
 
-  client.voteMessage = function(messageId, data, callback) {
+  client.voteMessage = function(messageId, settings) {
     var url = serverUrl + 'messages/' + messageId + '/vote'
-    doPost(url, data, callback)
+    doPost(url, settings)
   }
 
   // comments
-  client.commentsForMessage = function(messageId, data, callback) {
+  client.commentsForMessage = function(messageId, settings) {
     var url = serverUrl + 'messages/' + messageId + '/comments'
-    doGetJSON(url, data, callback)
+    doGet(url, settings)
   }
 
-  client.postComment = function(messageId, data, callback) {
+  client.postComment = function(messageId, settings) {
     var url = serverUrl + 'messages/' + messageId + '/comment'
-    doPost(url, data, callback)
+    doPost(url, settings)
   }
 
   // announcements
-  client.announcements = function(callback) {
+  client.announcements = function(settings) {
     var url = serverUrl + 'announcements'
-    doGetJSON(url, {}, callback)
+    doGet(url, settings)
   }
 
   return client;
